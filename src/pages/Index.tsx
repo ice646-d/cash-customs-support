@@ -58,7 +58,14 @@ const Index = () => {
                 <p className="text-muted-foreground mb-6">
                   Get instant help from our support team
                 </p>
-                <Button className="w-full bg-primary hover:bg-primary-glow">
+                <Button 
+                  className="w-full bg-primary hover:bg-primary-glow"
+                  onClick={() => {
+                    if (window.chaport) {
+                      window.chaport.q('open');
+                    }
+                  }}
+                >
                   Start Chat
                 </Button>
               </CardContent>

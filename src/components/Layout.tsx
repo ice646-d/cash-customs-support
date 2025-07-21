@@ -113,6 +113,11 @@ const Layout = ({ children }: LayoutProps) => {
         <Button
           className="rounded-full w-14 h-14 bg-primary hover:bg-primary-glow shadow-soft"
           size="icon"
+          onClick={() => {
+            if (window.chaport) {
+              window.chaport.q('open');
+            }
+          }}
         >
           <MessageCircle className="w-6 h-6" />
         </Button>

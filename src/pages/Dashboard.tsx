@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Layout from '@/components/Layout';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
@@ -19,8 +19,7 @@ import {
 
 const Dashboard = () => {
   const [activeTab, setActiveTab] = useState('tickets');
-
-  const tickets = [
+  const [tickets, setTickets] = useState([
     {
       id: 'TK-001',
       title: 'Transaction not received',
@@ -29,7 +28,7 @@ const Dashboard = () => {
       priority: 'high'
     },
     {
-      id: 'TK-002',
+      id: 'TK-002', 
       title: 'Cash Card activation issue',
       status: 'responded',
       date: '2024-01-14',
@@ -42,7 +41,57 @@ const Dashboard = () => {
       date: '2024-01-12',
       priority: 'low'
     }
-  ];
+  ]);
+
+  const [formData, setFormData] = useState({
+    name: '',
+    email: '',
+    subject: '',
+    priority: 'medium',
+    message: ''
+  });
+
+  // Load tickets from localStorage on component mount
+  useEffect(() => {
+    const savedTickets = localStorage.getItem('supportTickets');
+    if (savedTickets) {
+      setTickets(JSON.parse(savedTickets));
+    }
+  }, []);
+
+  // Save tickets to localStorage whenever tickets change
+  useEffect(() => {
+    localStorage.setItem('supportTickets', JSON.stringify(tickets));
+  }, [tickets]);
+
+  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
+    setFormData({
+      ...formData,
+      [e.target.id]: e.target.value
+    });
+  };
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    const newTicket = {
+      id: `TK-${String(tickets.length + 1).padStart(3, '0')}`,
+      title: formData.subject,
+      status: 'pending',
+      date: new Date().toISOString().split('T')[0],
+      priority: formData.priority
+    };
+
+    setTickets([newTicket, ...tickets]);
+    setFormData({
+      name: '',
+      email: '',
+      subject: '',
+      priority: 'medium',
+      message: ''
+    });
+    setActiveTab('tickets');
+  };
 
   const getStatusIcon = (status: string) => {
     switch (status) {
@@ -176,48 +225,78 @@ const Dashboard = () => {
                       Describe your issue and we'll get back to you soon
                     </CardDescription>
                   </CardHeader>
-                  <CardContent>
-                    <form className="space-y-6">
-                      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <div className="space-y-2">
-                          <Label htmlFor="name">Full Name</Label>
-                          <Input id="name" placeholder="Enter your full name" />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor="email">Email Address</Label>
-                          <Input id="email" type="email" placeholder="Enter your email" />
-                        </div>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="subject">Subject</Label>
-                        <Input id="subject" placeholder="Brief description of your issue" />
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="priority">Priority Level</Label>
-                        <select className="w-full p-2 border border-input rounded-md bg-background">
-                          <option value="low">Low - General question</option>
-                          <option value="medium">Medium - Account issue</option>
-                          <option value="high">High - Payment problem</option>
-                          <option value="urgent">Urgent - Security concern</option>
-                        </select>
-                      </div>
-                      
-                      <div className="space-y-2">
-                        <Label htmlFor="message">Detailed Description</Label>
-                        <Textarea 
-                          id="message" 
-                          rows={6}
-                          placeholder="Please provide as much detail as possible about your issue..."
-                        />
-                      </div>
-                      
-                      <Button className="w-full md:w-auto bg-primary hover:bg-primary-glow">
-                        Submit Request
-                      </Button>
-                    </form>
-                  </CardContent>
+                   <CardContent>
+                     <form className="space-y-6" onSubmit={handleSubmit}>
+                       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                         <div className="space-y-2">
+                           <Label htmlFor="name">Full Name</Label>
+                           <Input 
+                             id="name" 
+                             placeholder="Enter your full name" 
+                             value={formData.name}
+                             onChange={handleInputChange}
+                             required
+                           />
+                         </div>
+                         <div className="space-y-2">
+                           <Label htmlFor="email">Email Address</Label>
+                           <Input 
+                             id="email" 
+                             type="email" 
+                             placeholder="Enter your email" 
+                             value={formData.email}
+                             onChange={handleInputChange}
+                             required
+                           />
+                         </div>
+                       </div>
+                       
+                       <div className="space-y-2">
+                         <Label htmlFor="subject">Subject</Label>
+                         <Input 
+                           id="subject" 
+                           placeholder="Brief description of your issue" 
+                           value={formData.subject}
+                           onChange={handleInputChange}
+                           required
+                         />
+                       </div>
+                       
+                       <div className="space-y-2">
+                         <Label htmlFor="priority">Priority Level</Label>
+                         <select 
+                           id="priority"
+                           className="w-full p-2 border border-input rounded-md bg-background"
+                           value={formData.priority}
+                           onChange={handleInputChange}
+                         >
+                           <option value="low">Low - General question</option>
+                           <option value="medium">Medium - Account issue</option>
+                           <option value="high">High - Payment problem</option>
+                           <option value="urgent">Urgent - Security concern</option>
+                         </select>
+                       </div>
+                       
+                       <div className="space-y-2">
+                         <Label htmlFor="message">Detailed Description</Label>
+                         <Textarea 
+                           id="message" 
+                           rows={6}
+                           placeholder="Please provide as much detail as possible about your issue..."
+                           value={formData.message}
+                           onChange={handleInputChange}
+                           required
+                         />
+                       </div>
+                       
+                       <Button 
+                         type="submit"
+                         className="w-full md:w-auto bg-primary hover:bg-primary-glow"
+                       >
+                         Submit Request
+                       </Button>
+                     </form>
+                   </CardContent>
                 </Card>
               )}
 
